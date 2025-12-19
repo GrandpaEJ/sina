@@ -151,8 +151,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     
     // Save
-    surface.save_png("examples/output/text_samples/showcase.png")?;
-    println!("\nSaved to examples/output/text_samples/showcase.png");
+    surface.save_png("examples/output/text/showcase.png")?;
+    println!("\nSaved to examples/output/text/showcase.png");
     
     Ok(())
 }

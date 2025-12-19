@@ -86,8 +86,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     
     // Save output
-    surface.save_png("examples/output/text_samples/multilingual.png")?;
-    println!("\n✅ Saved to examples/output/text_samples/multilingual.png");
+    surface.save_png("examples/output/text/multilingual.png")?;
+    println!("\n✅ Saved to examples/output/text/multilingual.png");
     
     Ok(())
 }

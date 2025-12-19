@@ -101,8 +101,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     
     // Save
-    surface.save_png("examples/output/text_samples/font_comparison.png")?;
-    println!("✅ Saved to examples/output/text_samples/font_comparison.png");
+    surface.save_png("examples/output/text/font_comparison.png")?;
+    println!("✅ Saved to examples/output/text/font_comparison.png");
     
     Ok(())
 }
