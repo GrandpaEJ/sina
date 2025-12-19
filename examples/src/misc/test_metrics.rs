@@ -7,7 +7,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let font = Font::from_file(font_path)?;
     
     let raw_face = font.face().raw_face();
-    let face = rustybuzz::Face::from_slice(raw_face.data, 0)?;
+    let face = rustybuzz::Face::from_slice(raw_face.data, 0).ok_or("Failed to create face")?;
     
     let mut buffer = rustybuzz::UnicodeBuffer::new();
     buffer.push_str("Hello");

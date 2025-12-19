@@ -1,6 +1,6 @@
 [package]
 name = "sina-examples"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 # Shape Examples
@@ -64,3 +64,4 @@ path = "src/misc/test_metrics.rs"
 
 [dependencies]
 sina = { path = "../sina-core" }
+rustybuzz = { workspace = true }
