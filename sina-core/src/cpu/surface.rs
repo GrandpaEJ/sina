@@ -245,18 +245,21 @@ impl Canvas for CpuSurface {
                         let dst_g = ((existing >> 8) & 0xFF) as u8;
                         let dst_b = (existing & 0xFF) as u8;
                         
-                        // Source color with glyph alpha
+                        // Calculate source alpha from glyph and paint
                         let src_a = ((glyph_alpha as u16 * color.a as u16) / 255) as u8;
-                        let src_r = ((color.r as u16 * src_a as u16) / 255) as u8;
-                        let src_g = ((color.g as u16 * src_a as u16) / 255) as u8;
-                        let src_b = ((color.b as u16 * src_a as u16) / 255) as u8;
                         
-                        // Alpha blend (simplified SrcOver)
-                        let inv_src_a = 255 - src_a;
-                        let out_a = src_a.saturating_add(((dst_a as u16 * inv_src_a as u16) / 255) as u8);
-                        let out_r = src_r.saturating_add(((dst_r as u16 * inv_src_a as u16) / 255) as u8);
-                        let out_g = src_g.saturating_add(((dst_g as u16 * inv_src_a as u16) / 255) as u8);
-                        let out_b = src_b.saturating_add(((dst_b as u16 * inv_src_a as u16) / 255) as u8);
+                        if src_a == 0 {
+                            continue;
+                        }
+                        
+                        // Blend using standard alpha compositing
+                        // dst' = src * alpha + dst * (1 - alpha)
+                        let inv_alpha = 255 - src_a;
+                        
+                        let out_r = ((color.r as u16 * src_a as u16 + dst_r as u16 * inv_alpha as u16) / 255) as u8;
+                        let out_g = ((color.g as u16 * src_a as u16 + dst_g as u16 * inv_alpha as u16) / 255) as u8;
+                        let out_b = ((color.b as u16 * src_a as u16 + dst_b as u16 * inv_alpha as u16) / 255) as u8;
+                        let out_a = dst_a.saturating_add(src_a) - ((dst_a as u16 * src_a as u16) / 255) as u8;
                         
                         // Write back in ARGB format
                         target_data[target_idx] = 
