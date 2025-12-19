@@ -1,0 +1,56 @@
+[workspace]
+members = [
+    "sina-core",
+    "examples",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Grandpa <grandpa@sina.dev>"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/grandpa/sina"
+keywords = ["graphics", "rendering", "2d", "skia", "canvas"]
+categories = ["graphics", "rendering"]
+
+[workspace.dependencies]
+# GPU Backend
+wgpu = "22"
+bytemuck = { version = "1.14", features = ["derive"] }
+
+# Vector Graphics & Tessellation
+lyon_tessellation = "1.0"
+lyon_path = "1.0"
+
+# Text Rendering
+fontdue = "0.8"
+ttf-parser = "0.20"
+rustybuzz = "0.12"
+unicode-bidi = "0.3"
+
+# 2D Rasterization
+raqote = "0.8"
+
+# Image I/O
+image = "0.24"
+
+# Mathematics
+glam = "0.25"
+
+# Parallelism
+rayon = "1.8"
+
+# Error Handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

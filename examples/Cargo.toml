@@ -1,0 +1,11 @@
+[package]
+name = "sina-examples"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "basic_shapes"
+path = "src/basic_shapes.rs"
+
+[dependencies]
+sina-core = { path = "../sina-core" }

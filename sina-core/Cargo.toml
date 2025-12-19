@@ -1,0 +1,39 @@
+[package]
+name = "sina-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Core data types and abstractions for the Sina rendering engine"
+
+[dependencies]
+# Vector Graphics & Tessellation
+lyon_path = { workspace = true }
+lyon_tessellation = { workspace = true }
+
+# Mathematics
+glam = { workspace = true }
+
+# 2D Rasterization
+raqote = { workspace = true }
+
+# GPU Backend
+wgpu = { workspace = true }
+bytemuck = { workspace = true }
+
+# Text Rendering
+ttf-parser = { workspace = true }
+fontdue = { workspace = true }
+rustybuzz = { workspace = true }
+unicode-bidi = { workspace = true }
+
+# Image I/O
+image = { workspace = true }
+
+# Parallelism
+rayon = { workspace = true }
+
+# Error Handling
+thiserror = { workspace = true }
+log = { workspace = true }
