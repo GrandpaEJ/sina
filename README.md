@@ -202,4 +202,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
 
-**Sina** - سینا - "Chest/Treasury" in Persian - A treasure trove of 2D graphics capabilities! 🎨
+**Sina** - سینا - A treasure trove of 2D graphics capabilities! 🎨
