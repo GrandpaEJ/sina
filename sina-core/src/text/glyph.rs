@@ -142,7 +142,6 @@ impl GlyphCache {
         // Try to load a color bitmap (CBDT/CBLC/SBIX)
         // 1. Try to get raster image at requested size directly
         let target_ppem = font_size as u16;
-        let mut best_ppem = target_ppem;
         let mut raster_image_opt = face.glyph_raster_image(glyph_id, target_ppem);
         
         // If exact size not found, try common emoji bitmap sizes
@@ -150,7 +149,6 @@ impl GlyphCache {
             for &size in &[109, 128, 96, 64, 32] {
                 if let Some(img) = face.glyph_raster_image(glyph_id, size) {
                     raster_image_opt = Some(img);
-                    best_ppem = size;
                     break;
                 }
             }

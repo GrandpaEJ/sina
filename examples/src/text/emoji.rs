@@ -3,13 +3,10 @@ use sina::{Color, Paint, Point, Surface, CpuSurface, Font};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🤡 Sina Emoji Rendering Test");
     
-    // Find an emoji font
-    let font_path = find_emoji_font();
-    
     // Create surface
     let mut surface = CpuSurface::new(1400, 600);
     surface.canvas().clear(Color::rgb(255, 255, 255));
-    
+
     // 1. Load Text Font (DejaVu Sans or FreeSans)
     let text_font_name = "DejaVuSans.ttf";
     let text_font_path = find_font(text_font_name).or_else(|| find_font("FreeSans.ttf"));
@@ -25,7 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let emoji_font = Font::from_file(&emoji_path).expect("Failed to load emoji font");
 
         // 3. Draw Standard Text
-        let mut paint = Paint::with_color(Color::rgb(20, 20, 20)); // Dark Gray
+        let paint = Paint::with_color(Color::rgb(20, 20, 20)); // Dark Gray
         surface.canvas().draw_text(
             "Hello World! Text + Emoji:",
             Point::new(50.0, 200.0),
@@ -35,8 +32,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
 
         // 4. Draw Emojis (using Emoji Font)
-        // Positioned after the text (approx width)
-        let emoji_text = "😀 🌍 🚀";
+        // Positioned after the text (ap
+        // prox width)
+        let emoji_text = "😀🌍🦀🚀⚡📍🔎";
         surface.canvas().draw_text(
             emoji_text,
             Point::new(850.0, 200.0), // Hardcoded relative position for simplicity
