@@ -180,6 +180,9 @@ impl Canvas for CpuSurface {
         
         // Layout the text
         let positioned_glyphs = layout.layout(text, position, TextAlign::Left);
+        if cfg!(debug_assertions) && text.starts_with("Hello") {
+             // println!("DEBUG: Layout '{}' -> {} glyphs", text, positioned_glyphs.len());
+        }
         
         // Create glyph cache
         let mut glyph_cache = GlyphCache::default();
@@ -192,18 +195,31 @@ impl Canvas for CpuSurface {
         // Render each glyph
         for (glyph_pos, shaped_glyph) in positioned_glyphs {
             // Rasterize glyph using its index (important for ligatures/complex scripts)
-            if let Some(rasterized) = glyph_cache.get_or_rasterize_indexed(
+            let rasterized_opt = glyph_cache.get_or_rasterize_indexed(
                 font,
                 shaped_glyph.glyph_index,
                 font_size
-            ) {
-                if rasterized.width == 0 || rasterized.height == 0 {
-                    continue;
+            );
+
+            if rasterized_opt.is_none() {
+                if cfg!(debug_assertions) {
+                    println!("DEBUG: Failed to rasterize glyph {}", shaped_glyph.glyph_index);
                 }
-                
-                // Calculate position with bearings
-                let x = (glyph_pos.x + rasterized.bearing_x).round() as i32;
-                let y = (glyph_pos.y - rasterized.bearing_y - rasterized.height as f32).round() as i32;
+                continue;
+            }
+            let rasterized = rasterized_opt.unwrap();
+
+            if rasterized.width == 0 || rasterized.height == 0 {
+                 continue;
+            }
+            
+            // Calculate position with bearings
+            let x = (glyph_pos.x + rasterized.bearing_x).round() as i32;
+            let y = (glyph_pos.y - rasterized.bearing_y - rasterized.height as f32).round() as i32;
+
+            if cfg!(debug_assertions) && text.starts_with("Hello") && shaped_glyph.glyph_index < 1000 {
+                // println!("DEBUG: DrawGlyph {} at ({},{}) size={}x{} fmt={:?}", shaped_glyph.glyph_index, x, y, rasterized.width, rasterized.height, rasterized.format);
+            }
                 
                 // Skip if completely off screen
                 if x + (rasterized.width as i32) < 0 || y + (rasterized.height as i32) < 0 {
@@ -247,42 +263,76 @@ impl Canvas for CpuSurface {
                      self.draw_target.draw_image_at(x as f32, y as f32, &image, &DrawOptions::default());
                      continue;
                 } else if rasterized.format == crate::text::GlyphFormat::Alpha {
-                    // Convert alpha mask to ARGB image using the paint color
-                    let mut argb_pixels = Vec::with_capacity(rasterized.width * rasterized.height);
+                    // Manual optimized path for standard text to ensure reliability
+                    // This avoids Raqote image creation overhead and potential stride bugs for simple masks
                     
-                    let paint_r = color.r as u16;
-                    let paint_g = color.g as u16;
-                    let paint_b = color.b as u16;
-                    let paint_a = color.a as u16;
+                    let target_data = self.draw_target.get_data_mut();
+                    let target_width_usize = target_width as usize;
+                    
+                    let src_r = color.r;
+                    let src_g = color.g;
+                    let src_b = color.b;
+                    
+                    for gy in 0..rasterized.height {
+                        let target_y = y + (gy as i32);
+                        if target_y < 0 || target_y >= target_height {
+                            continue;
+                        }
+                        
+                        // Per-row bounds check for X is in inner loop
+                        let row_start_idx = (target_y as usize) * target_width_usize;
+                        
+                        for gx in 0..rasterized.width {
+                            let target_x = x + (gx as i32);
+                            if target_x < 0 || target_x >= target_width {
+                                continue;
+                            }
+                            
+                            let glyph_alpha = rasterized.pixels[gy * rasterized.width + gx];
+                            if glyph_alpha == 0 {
+                                continue;
+                            }
+                            
+                            // Blend paint alpha with glyph alpha
+                            let src_a = ((glyph_alpha as u16 * color.a as u16) / 255) as u8;
+                            if src_a == 0 {
+                                continue;
+                            }
+                             
+                             // Calculate target pixel index
+                             let target_idx = row_start_idx + (target_x as usize);
+                             
+                             // DEBUG: Log first pixel of first glyph
+                             // if gy == rasterized.height / 2 && gx == rasterized.width / 2 && x < 100 {
+                             //    println!("DEBUG: AlphaPixel at ({},{}) src_a={} color={:?}", target_x, target_y, src_a, color);
+                             // }
 
-                    for &coverage in &rasterized.pixels {
-                        // coverage is 0..255
-                        // final_alpha = (coverage * paint_alpha) / 255
-                        let final_a = (coverage as u16 * paint_a) / 255;
-                        
-                        // Premultiply color
-                        let r = (paint_r * final_a) / 255;
-                        let g = (paint_g * final_a) / 255;
-                        let b = (paint_b * final_a) / 255;
-                        
-                        // Pack
-                        let pixel = ((final_a as u32) << 24) | 
-                                    ((r as u32) << 16) | 
-                                    ((g as u32) << 8) | 
-                                    (b as u32);
-                        argb_pixels.push(pixel);
+                             // Get existing pixel (ARGB format in raqote)
+                             let existing = target_data[target_idx];
+                             let dst_a = ((existing >> 24) & 0xFF) as u8;
+                             let dst_r = ((existing >> 16) & 0xFF) as u8;
+                             let dst_g = ((existing >> 8) & 0xFF) as u8;
+                             let dst_b = (existing & 0xFF) as u8;
+                             
+                             // Blend using standard alpha compositing
+                             // dst' = src * alpha + dst * (1 - alpha)
+                             let inv_alpha = 255 - src_a;
+                             
+                             let out_r = ((src_r as u16 * src_a as u16 + dst_r as u16 * inv_alpha as u16) / 255) as u8;
+                             let out_g = ((src_g as u16 * src_a as u16 + dst_g as u16 * inv_alpha as u16) / 255) as u8;
+                             let out_b = ((src_b as u16 * src_a as u16 + dst_b as u16 * inv_alpha as u16) / 255) as u8;
+                             let out_a = dst_a.saturating_add(src_a) - ((dst_a as u16 * src_a as u16) / 255) as u8;
+                             
+                             // Write back in ARGB format
+                             target_data[target_idx] = 
+                                 ((out_a as u32) << 24) | 
+                                 ((out_r as u32) << 16) | 
+                                 ((out_g as u32) << 8) | 
+                                 (out_b as u32);
+                        }
                     }
-
-                    let image = raqote::Image {
-                        width: rasterized.width as i32,
-                        height: rasterized.height as i32,
-                        data: &argb_pixels,
-                    };
-                    
-                    self.draw_target.draw_image_at(x as f32, y as f32, &image, &DrawOptions::default());
                     continue;
                 }
-            }
         }
     }
 }
