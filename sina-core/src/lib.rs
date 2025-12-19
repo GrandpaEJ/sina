@@ -38,4 +38,9 @@ pub use cpu::CpuSurface;
 pub use gpu::GpuSurface;
 
 // Re-export text rendering
-pub use text::{Font, FontError, TextLayout, TextAlign, GlyphCache};
+pub use text::{
+    Font, FontError, TextLayout, TextAlign, GlyphCache,
+    ColorEmojiRenderer, ColorLayer,
+    BitmapFontRenderer, BitmapGlyph,
+    VariableFontManager, VariationAxis, Variation,
+};

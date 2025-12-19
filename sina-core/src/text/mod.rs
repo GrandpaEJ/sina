@@ -5,7 +5,13 @@
 mod font;
 mod glyph;
 mod layout;
+mod emoji;
+mod bitmap;
+mod variable;
 
 pub use font::{Font, FontError};
 pub use glyph::{GlyphCache, RasterizedGlyph};
 pub use layout::{TextLayout, TextAlign, ShapedText};
+pub use emoji::{ColorEmojiRenderer, ColorLayer};
+pub use bitmap::{BitmapFontRenderer, BitmapGlyph};
+pub use variable::{VariableFontManager, VariationAxis, Variation};

@@ -11,5 +11,9 @@ path = "src/basic_shapes.rs"
 name = "text_rendering"
 path = "src/text_rendering.rs"
 
+[[bin]]
+name = "font_formats"
+path = "src/font_formats.rs"
+
 [dependencies]
 sina = { path = "../sina-core" }

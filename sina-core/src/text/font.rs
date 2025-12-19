@@ -42,6 +42,11 @@ impl Font {
     
     /// Load a font from bytes
     pub fn from_bytes(data: Vec<u8>) -> Result<Self, FontError> {
+        Self::from_bytes_with_index(data, 0)
+    }
+    
+    /// Load a font from bytes with specific font index (for .ttc collections)
+    pub fn from_bytes_with_index(data: Vec<u8>, index: u32) -> Result<Self, FontError> {
         let data = Arc::new(data);
         
         // Parse with ttf-parser for metadata
@@ -50,7 +55,7 @@ impl Font {
             let data_ref: &[u8] = unsafe {
                 std::slice::from_raw_parts(data.as_ptr(), data.len())
             };
-            ttf_parser::Face::parse(data_ref, 0)
+            ttf_parser::Face::parse(data_ref, index)
                 .map_err(|e| FontError::ParseError(format!("{:?}", e)))?
         };
         
@@ -69,6 +74,17 @@ impl Font {
             face,
             fontdue_font,
         })
+    }
+    
+    /// Load a font from a TrueType collection (.ttc) file
+    pub fn from_collection(path: impl AsRef<std::path::Path>, index: u32) -> Result<Self, FontError> {
+        let data = std::fs::read(path)?;
+        Self::from_bytes_with_index(data, index)
+    }
+    
+    /// Get number of fonts in a collection file
+    pub fn collection_size(data: &[u8]) -> Option<u32> {
+        ttf_parser::fonts_in_collection(data)
     }
     
     /// Get the font family name
