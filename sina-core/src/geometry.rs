@@ -1,6 +1,6 @@
 //! Geometric primitives and transformations
 
-use glam::{Vec2, Mat3};
+use glam::{Mat3, Vec2};
 
 /// 2D point
 pub type Point = Vec2;
@@ -29,7 +29,12 @@ pub struct Rect {
 
 impl Rect {
     pub const fn new(x: f32, y: f32, width: f32, height: f32) -> Self {
-        Self { x, y, width, height }
+        Self {
+            x,
+            y,
+            width,
+            height,
+        }
     }
 
     pub fn from_xywh(x: f32, y: f32, width: f32, height: f32) -> Self {

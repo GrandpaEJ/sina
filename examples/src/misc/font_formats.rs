@@ -2,14 +2,14 @@
 //!
 //! Demonstrates various font format features including variable fonts and collections.
 
-use sina::{Font, VariableFontManager, BitmapFontRenderer};
+use sina::{BitmapFontRenderer, Font, VariableFontManager};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🔤 Sina Font Format Support Demo\n");
-    
+
     // This example demonstrates the API for advanced font features
     // Note: You'll need appropriate font files to see actual results
-    
+
     println!("📋 Supported Font Formats:");
     println!("   ✓ TrueType (.ttf)");
     println!("   ✓ OpenType (.otf)");
@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("   ✓ Variable Fonts (fvar)");
     println!("   ✓ Bitmap Fonts (CBDT/SBIX)");
     println!("   ✓ Color Emoji (COLR/CPAL) - stub\n");
-    
+
     // Example 1: Loading from a TrueType Collection
     println!("💡 Example 1: TrueType Collections (.ttc)");
     println!("   // Load first font from collection");
@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("   if let Some(count) = Font::collection_size(&data) {{");
     println!("       println!(\"Collection has {{}} fonts\", count);");
     println!("   }}\n");
-    
+
     // Example 2: Variable Fonts
     println!("💡 Example 2: Variable Fonts");
     println!("   let font = Font::from_file(\"variable-font.ttf\")?;");
@@ -40,7 +40,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("           println!(\"  Range: {{}} - {{}}\", axis.min_value, axis.max_value);");
     println!("       }}");
     println!("   }}\n");
-    
+
     // Example 3: Bitmap Fonts
     println!("💡 Example 3: Bitmap Fonts");
     println!("   let font = Font::from_file(\"emoji-font.ttf\")?;");
@@ -49,7 +49,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("       let sizes = BitmapFontRenderer::available_sizes(&font);");
     println!("       println!(\"Available bitmap sizes: {{:?}}\", sizes);");
     println!("   }}\n");
-    
+
     // Example 4: Color Emoji
     println!("💡 Example 4: Color Emoji (COLR/CPAL)");
     println!("   use sina::ColorEmojiRenderer;");
@@ -61,14 +61,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("       let layers = emoji_renderer.get_color_layers(&font, glyph_id, 0);");
     println!("       // Render each layer with its color");
     println!("   }}\n");
-    
+
     println!("📚 Note: These examples show the API structure.");
     println!("   To see them in action, provide appropriate font files for each format.\n");
-    
+
     println!("🎯 Try it yourself:");
     println!("   1. Find a variable font (many available at fonts.google.com)");
     println!("   2. Try macOS system fonts for .ttc collections");
     println!("   3. emoji fonts often have CBDT or COLR tables\n");
-    
+
     Ok(())
 }

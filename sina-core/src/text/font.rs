@@ -10,13 +10,13 @@ use thiserror::Error;
 pub enum FontError {
     #[error("Failed to parse font: {0}")]
     ParseError(String),
-    
+
     #[error("I/O error: {0}")]
     IoError(#[from] std::io::Error),
-    
+
     #[error("Glyph not found for character: {0}")]
     GlyphNotFound(char),
-    
+
     #[error("Invalid font index: {0}")]
     InvalidIndex(u32),
 }
@@ -25,13 +25,13 @@ pub enum FontError {
 pub struct Font {
     /// Font data (shared reference for efficiency)
     data: Arc<Vec<u8>>,
-    
+
     /// Font collection index
     index: u32,
-    
+
     /// Parsed font face
     face: ttf_parser::Face<'static>,
-    
+
     /// Fontdue font for rasterization
     fontdue_font: fontdue::Font,
 }
@@ -42,41 +42,36 @@ impl Font {
         let data = std::fs::read(path)?;
         Self::from_bytes(data)
     }
-    
+
     /// Load a font from bytes
     pub fn from_bytes(data: Vec<u8>) -> Result<Self, FontError> {
         Self::from_bytes_with_index(data, 0)
     }
-    
+
     /// Load a font from bytes with specific font index (for .ttc collections)
     pub fn from_bytes_with_index(data: Vec<u8>, index: u32) -> Result<Self, FontError> {
         let data = Arc::new(data);
-        
+
         // Parse with ttf-parser for metadata
         let face = {
             // SAFETY: We ensure the data lives as long as the Font struct
-            let data_ref: &[u8] = unsafe {
-                std::slice::from_raw_parts(data.as_ptr(), data.len())
-            };
+            let data_ref: &[u8] = unsafe { std::slice::from_raw_parts(data.as_ptr(), data.len()) };
             ttf_parser::Face::parse(data_ref, index)
                 .map_err(|e| FontError::ParseError(format!("{:?}", e)))?
         };
-        
+
         let settings = fontdue::FontSettings {
             collection_index: index,
             ..fontdue::FontSettings::default()
         };
 
-        let fontdue_font = fontdue::Font::from_bytes(
-            data.as_ref().as_slice(),
-            settings
-        ).map_err(|e| FontError::ParseError(e.to_string()))?;
-        
+        let fontdue_font = fontdue::Font::from_bytes(data.as_ref().as_slice(), settings)
+            .map_err(|e| FontError::ParseError(e.to_string()))?;
+
         // SAFETY: Transmute to 'static lifetime - we guarantee Font owns the data
-        let face = unsafe {
-            std::mem::transmute::<ttf_parser::Face<'_>, ttf_parser::Face<'static>>(face)
-        };
-        
+        let face =
+            unsafe { std::mem::transmute::<ttf_parser::Face<'_>, ttf_parser::Face<'static>>(face) };
+
         Ok(Self {
             data,
             index,
@@ -84,13 +79,16 @@ impl Font {
             fontdue_font,
         })
     }
-    
+
     /// Load a font from a TrueType collection (.ttc) file
-    pub fn from_collection(path: impl AsRef<std::path::Path>, index: u32) -> Result<Self, FontError> {
+    pub fn from_collection(
+        path: impl AsRef<std::path::Path>,
+        index: u32,
+    ) -> Result<Self, FontError> {
         let data = std::fs::read(path)?;
         Self::from_bytes_with_index(data, index)
     }
-    
+
     /// Get number of fonts in a collection file
     pub fn collection_size(data: &[u8]) -> Option<u32> {
         ttf_parser::fonts_in_collection(data)
@@ -100,50 +98,51 @@ impl Font {
     pub fn index(&self) -> u32 {
         self.index
     }
-    
+
     /// Get the font family name
     pub fn family_name(&self) -> Option<String> {
-        self.face.names()
+        self.face
+            .names()
             .into_iter()
             .find(|name| name.name_id == ttf_parser::name_id::FAMILY)
             .and_then(|name| name.to_string())
     }
-    
+
     /// Get the font's units per em
     pub fn units_per_em(&self) -> u16 {
         self.face.units_per_em()
     }
-    
+
     /// Get the ascender (height above baseline)
     pub fn ascender(&self) -> i16 {
         self.face.ascender()
     }
-    
+
     /// Get the descender (depth below baseline)
     pub fn descender(&self) -> i16 {
         self.face.descender()
     }
-    
+
     /// Get the line gap
     pub fn line_gap(&self) -> i16 {
         self.face.line_gap()
     }
-    
+
     /// Calculate line height at given font size
     pub fn line_height(&self, font_size: f32) -> f32 {
         let units_per_em = self.units_per_em() as f32;
         let ascent = self.ascender() as f32;
         let descent = self.descender().abs() as f32;
         let line_gap = self.line_gap() as f32;
-        
+
         ((ascent + descent + line_gap) / units_per_em) * font_size
     }
-    
+
     /// Get glyph index for a character
     pub fn glyph_index(&self, character: char) -> Option<u16> {
         self.face.glyph_index(character).map(|id| id.0)
     }
-    
+
     /// Get horizontal advance for a glyph at given font size
     pub fn glyph_advance(&self, glyph_id: u16, font_size: f32) -> f32 {
         let glyph_id = ttf_parser::GlyphId(glyph_id);
@@ -154,12 +153,12 @@ impl Font {
             0.0
         }
     }
-    
+
     /// Get fontdue font reference for rasterization
     pub(crate) fn fontdue_font(&self) -> &fontdue::Font {
         &self.fontdue_font
     }
-    
+
     /// Get ttf-parser face reference
     pub fn face(&self) -> &ttf_parser::Face<'_> {
         &self.face
@@ -177,7 +176,7 @@ impl Clone for Font {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_font_basics() {
         // This test would need an actual font file

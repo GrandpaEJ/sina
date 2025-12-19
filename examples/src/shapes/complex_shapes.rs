@@ -1,13 +1,13 @@
 //! Complex shapes and patterns example
 
-use sina::{Color, Paint, Point, Rect, Surface, CpuSurface};
+use sina::{Color, CpuSurface, Paint, Point, Rect, Surface};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🎨 Sina Complex Shapes Example");
-    
+
     let mut surface = CpuSurface::new(800, 600);
     surface.canvas().clear(Color::rgb(245, 245, 250));
-    
+
     // Example 1: Simple grid pattern
     println!("Drawing grid pattern...");
     let paint = Paint::with_color(Color::rgba(200, 200, 200, 200));
@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &paint,
         );
     }
-    
+
     // Example 2: Concentric circles
     println!("Drawing concentric circles...");
     let center = Point::new(200.0, 200.0);
@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let paint = Paint::with_color(Color::rgb(100, 150, 255));
         surface.canvas().draw_circle(center, radius, &paint);
     }
-    
+
     // Example 3: Overlapping rectangles
     println!("Drawing overlapping rectangles...");
     let colors = [
@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &paint,
         );
     }
-    
+
     // Example 4: Checkerboard pattern
     println!("Drawing checkerboard...");
     for row in 0..4 {
@@ -66,17 +66,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     50.0 + (col as f32 * 40.0),
                     400.0 + (row as f32 * 40.0),
                     40.0,
-                    40.0
+                    40.0,
                 ),
                 &paint,
             );
         }
     }
-    
+
     let path = "examples/output/shapes/complex_shapes.png";
     std::fs::create_dir_all("examples/output/shapes")?;
     surface.save_png(path)?;
     println!("✅ Saved to {}", path);
-    
+
     Ok(())
 }

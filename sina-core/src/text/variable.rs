@@ -9,16 +9,16 @@ use super::Font;
 pub struct VariationAxis {
     /// Axis tag (e.g., "wght" for weight)
     pub tag: String,
-    
+
     /// Axis name
     pub name: String,
-    
+
     /// Minimum value
     pub min_value: f32,
-    
+
     /// Default value
     pub default_value: f32,
-    
+
     /// Maximum value
     pub max_value: f32,
 }
@@ -28,7 +28,7 @@ pub struct VariationAxis {
 pub struct Variation {
     /// Axis tag
     pub tag: String,
-    
+
     /// Value for this axis
     pub value: f32,
 }
@@ -42,26 +42,27 @@ impl VariableFontManager {
         let face = font.face();
         face.tables().fvar.is_some()
     }
-    
+
     /// Get available variation axes
     pub fn axes(font: &Font) -> Vec<VariationAxis> {
         let face = font.face();
-        
+
         let fvar = match face.tables().fvar {
             Some(fvar) => fvar,
             None => return Vec::new(),
         };
-        
+
         let mut axes = Vec::new();
-        
+
         for axis in fvar.axes {
             // Get axis name from name table
-            let name = face.names()
+            let name = face
+                .names()
                 .into_iter()
                 .find(|n| n.name_id == axis.name_id)
                 .and_then(|n| n.to_string())
                 .unwrap_or_else(|| "Unknown".to_string());
-            
+
             axes.push(VariationAxis {
                 tag: String::from_utf8_lossy(&axis.tag.to_bytes()).to_string(),
                 name,
@@ -70,10 +71,10 @@ impl VariableFontManager {
                 max_value: axis.max_value,
             });
         }
-        
+
         axes
     }
-    
+
     /// Get named instances (predefined variations)
     /// Note: Requires instance iteration support in ttf-parser
     pub fn instances(_font: &Font) -> Vec<String> {
@@ -85,7 +86,7 @@ impl VariableFontManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_variation_axis() {
         let axis = VariationAxis {
@@ -95,7 +96,7 @@ mod tests {
             default_value: 400.0,
             max_value: 900.0,
         };
-        
+
         assert_eq!(axis.tag, "wght");
         assert_eq!(axis.default_value, 400.0);
     }

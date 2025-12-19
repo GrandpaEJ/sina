@@ -41,7 +41,8 @@ impl PathBuilder {
 
     /// Draw a line to a point
     pub fn line_to(mut self, point: Point) -> Self {
-        self.builder.line_to(lyon_path::geom::point(point.x, point.y));
+        self.builder
+            .line_to(lyon_path::geom::point(point.x, point.y));
         self
     }
 

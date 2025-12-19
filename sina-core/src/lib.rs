@@ -28,10 +28,10 @@ pub mod text;
 
 // Re-export commonly used types
 pub use color::Color;
-pub use geometry::{Point, Rect, Size, Matrix3x3};
-pub use paint::{Paint, StrokeStyle, BlendMode};
+pub use geometry::{Matrix3x3, Point, Rect, Size};
+pub use paint::{BlendMode, Paint, StrokeStyle};
 pub use path::Path;
-pub use surface::{Surface, Canvas};
+pub use surface::{Canvas, Surface};
 
 // Re-export backends
 pub use cpu::CpuSurface;
@@ -39,8 +39,6 @@ pub use gpu::GpuSurface;
 
 // Re-export text rendering
 pub use text::{
-    Font, FontError, TextLayout, TextAlign, GlyphCache,
-    ColorEmojiRenderer, ColorLayer,
-    BitmapFontRenderer, BitmapGlyph,
-    VariableFontManager, VariationAxis, Variation,
+    BitmapFontRenderer, BitmapGlyph, ColorEmojiRenderer, ColorLayer, Font, FontError, GlyphCache,
+    TextAlign, TextLayout, VariableFontManager, Variation, VariationAxis,
 };

@@ -1,8 +1,8 @@
-use sina::{Color, Paint, Point, Surface, CpuSurface, Font};
+use sina::{Color, CpuSurface, Font, Paint, Point, Surface};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🤡 Sina Emoji Rendering Test");
-    
+
     // Create surface
     let mut surface = CpuSurface::new(1400, 600);
     surface.canvas().clear(Color::rgb(255, 255, 255));
@@ -10,7 +10,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 1. Load Text Font (DejaVu Sans or FreeSans)
     let text_font_name = "DejaVuSans.ttf";
     let text_font_path = find_font(text_font_name).or_else(|| find_font("FreeSans.ttf"));
-    
+
     // 2. Load Emoji Font
     let emoji_font_path = find_emoji_font();
 
@@ -42,14 +42,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             60.0,
             &paint, // Color is ignored for RGBA bitmaps, but logic uses alpha
         );
-        
+
         // Ensure output directory exists
         std::fs::create_dir_all("examples/output/text")?;
         surface.save_png("examples/output/text/emoji_test.png")?;
         println!("✅ Saved to examples/output/text/emoji_test.png");
     } else {
         println!("❌ Could not find required fonts.");
-        println!("Text font found: {:?}", find_font("DejaVuSans.ttf").is_some());
+        println!(
+            "Text font found: {:?}",
+            find_font("DejaVuSans.ttf").is_some()
+        );
         println!("Emoji font found: {:?}", find_emoji_font().is_some());
     }
 
@@ -63,13 +66,13 @@ fn find_font(name: &str) -> Option<String> {
         format!("/usr/share/fonts/truetype/freefont/{}", name),
         format!("/System/Library/Fonts/{}", name),
     ];
-    
+
     for p in paths {
         if std::path::Path::new(&p).exists() {
             return Some(p);
         }
     }
-    
+
     // Fallback to `find`
     if cfg!(target_os = "linux") {
         let output = std::process::Command::new("find")
@@ -85,23 +88,23 @@ fn find_font(name: &str) -> Option<String> {
 
 fn find_emoji_font() -> Option<String> {
     if cfg!(target_os = "macos") {
-         if std::path::Path::new("/System/Library/Fonts/Apple Color Emoji.ttc").exists() {
-             return Some("/System/Library/Fonts/Apple Color Emoji.ttc".to_string());
-         }
+        if std::path::Path::new("/System/Library/Fonts/Apple Color Emoji.ttc").exists() {
+            return Some("/System/Library/Fonts/Apple Color Emoji.ttc".to_string());
+        }
     }
-    
+
     // Linux/Other
     if let Some(path) = find_font("NotoColorEmoji.ttf") {
         return Some(path);
     }
-    
+
     // Fallbacks
     let candidates = [
         "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf",
         "/usr/share/fonts/google-noto-emoji/NotoColorEmoji.ttf",
         "/usr/share/fonts/truetype/android/AndroidEmoji.ttf",
     ];
-    
+
     for p in candidates {
         if std::path::Path::new(p).exists() {
             return Some(p.to_string());
