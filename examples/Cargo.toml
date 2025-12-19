@@ -43,5 +43,9 @@ path = "src/multilingual.rs"
 name = "debug_text"
 path = "src/debug_text.rs"
 
+[[bin]]
+name = "test_metrics"
+path = "src/test_metrics.rs"
+
 [dependencies]
 sina = { path = "../sina-core" }

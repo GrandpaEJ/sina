@@ -67,18 +67,17 @@ impl TextLayout {
         for (pos, info) in positions.iter().zip(infos.iter()) {
             let character = text.chars().nth(info.cluster as usize).unwrap_or(' ');
             
-            let x_advance = (pos.x_advance as f32 * self.font_size) 
-                / (self.font.units_per_em() as f32 * 64.0);
-            let y_advance = (pos.y_advance as f32 * self.font_size) 
-                / (self.font.units_per_em() as f32 * 64.0);
+            // rustybuzz returns values in font design units, scale to font size
+            let scale = self.font_size / self.font.units_per_em() as f32;
+            
+            let x_advance = pos.x_advance as f32 * scale;
+            let y_advance = pos.y_advance as f32 * scale;
             
             let shaped_glyph = ShapedGlyph {
                 glyph_index: info.glyph_id as u16,
                 character,
-                x_offset: (pos.x_offset as f32 * self.font_size) 
-                    / (self.font.units_per_em() as f32 * 64.0),
-                y_offset: (pos.y_offset as f32 * self.font_size) 
-                    / (self.font.units_per_em() as f32 * 64.0),
+                x_offset: pos.x_offset as f32 * scale,
+                y_offset: pos.y_offset as f32 * scale,
                 x_advance,
                 y_advance,
             };
