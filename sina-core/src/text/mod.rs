@@ -10,7 +10,7 @@ mod bitmap;
 mod variable;
 
 pub use font::{Font, FontError};
-pub use glyph::{GlyphCache, RasterizedGlyph};
+pub use glyph::{GlyphCache, RasterizedGlyph, GlyphFormat};
 pub use layout::{TextLayout, TextAlign, ShapedText};
 pub use emoji::{ColorEmojiRenderer, ColorLayer};
 pub use bitmap::{BitmapFontRenderer, BitmapGlyph};

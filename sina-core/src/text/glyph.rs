@@ -2,12 +2,25 @@
 
 use crate::Color;
 use std::collections::HashMap;
+use image::GenericImageView;
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum GlyphFormat {
+    /// Grayscale alpha mask (standard text)
+    Alpha,
+    /// RGBA color bitmap (colored emojis)
+    Rgba,
+}
 
 /// A rasterized glyph with pixel data
 #[derive(Clone)]
 pub struct RasterizedGlyph {
-    /// Pixel data (grayscale alpha values 0-255)
+    /// Pixel data
+    /// - For Alpha: grayscale values 0-255
+    /// - For Rgba: standard RGBA bytes
     pub pixels: Vec<u8>,
+    
+    /// Format of the pixel data
+    pub format: GlyphFormat,
     
     /// Glyph width in pixels
     pub width: usize,
@@ -92,6 +105,7 @@ impl GlyphCache {
             bearing_x: metrics.xmin as f32,
             bearing_y: metrics.ymin as f32,
             advance: metrics.advance_width,
+            format: GlyphFormat::Alpha,
         };
         
         // Evict oldest entry if cache is full
@@ -122,7 +136,100 @@ impl GlyphCache {
             return Some(glyph.clone());
         }
         
-        // Rasterize using fontdue by index
+        let face = font.face();
+        let glyph_id = ttf_parser::GlyphId(glyph_index);
+        
+        // Try to load a color bitmap (CBDT/CBLC/SBIX)
+        // 1. Try to get raster image at requested size directly
+        let target_ppem = font_size as u16;
+        let mut best_ppem = target_ppem;
+        let mut raster_image_opt = face.glyph_raster_image(glyph_id, target_ppem);
+        
+        // If exact size not found, try common emoji bitmap sizes
+        if raster_image_opt.is_none() {
+            for &size in &[109, 128, 96, 64, 32] {
+                if let Some(img) = face.glyph_raster_image(glyph_id, size) {
+                    raster_image_opt = Some(img);
+                    best_ppem = size;
+                    break;
+                }
+            }
+        }
+        
+        // 2. Try to get raster image
+        if let Some(raster_image) = raster_image_opt {
+             // Use the actual size of the found bitmap for scaling
+             // ttf-parser might return a bitmap even if the requested size doesn't match perfectly
+             let found_ppem = raster_image.pixels_per_em;
+             
+             // 3. Decode image
+             if let Ok(img) = image::load_from_memory(raster_image.data) {
+                 // 4. Resize to requested font size
+                 let (w, h) = img.dimensions();
+                 
+                 // Target height is usually close to font_size, or em size.
+                 let scale = font_size / found_ppem as f32;
+                 let target_w = (w as f32 * scale).round() as u32;
+                 let target_h = (h as f32 * scale).round() as u32;
+
+                 let resized = img.resize(target_w, target_h, image::imageops::FilterType::Lanczos3);
+                 let rgba_data = resized.to_rgba8().into_vec();
+                 let (new_w, new_h) = resized.dimensions();
+                 
+                 // Get vector metrics for advance/bearing
+                 let units_per_em = face.units_per_em() as f32;
+                 let advance_width = face.glyph_hor_advance(glyph_id).unwrap_or(0);
+                 let advance = (advance_width as f32 / units_per_em) * font_size;
+                 
+                 // FIX: Position the emoji on the baseline. 
+                 // Previous attempt used descender, which might be too low.
+                 // Most bitmaps are full-height or centered, but anchoring bottom to baseline is a safe default.
+                 // A small negative bearing (descent) might be appropriate but 0.0 is safer than full descender.
+                 let bearing_y = 0.0; // Align bottom to baseline
+
+                 // Use vector side bearing if available, else scaled bitmap x
+                 let lsb = face.glyph_hor_side_bearing(glyph_id).unwrap_or(0);
+                 let bearing_x = (lsb as f32 / units_per_em) * font_size;
+
+                 if cfg!(debug_assertions) {
+                     // Check center pixel of the resized image to verify color
+                     // Removed debug print
+                 }
+
+                 let glyph = RasterizedGlyph {
+                     pixels: rgba_data,
+                     width: new_w as usize,
+                     height: new_h as usize,
+                     bearing_x,
+                     bearing_y,
+                     advance,
+                     format: GlyphFormat::Rgba,
+                 };
+                 
+                 // Cache and return
+                 if self.cache.len() >= self.max_size {
+                     if let Some(k) = self.cache.keys().next().copied() {
+                         self.cache.remove(&k);
+                     }
+                 }
+                 self.cache.insert(key, glyph.clone());
+                 return Some(glyph);
+             }
+        }
+
+        // 3. Try COLR/CPAL (Layered Vectors)
+        // FIXME: ttf-parser 0.20 API mismatch for COLR/CPAL tables. 
+        // Fields `cpal` not found on tables(), and `RgbaColor` fields mismatch.
+        // Disabling COLR support for now. CBDT bitmaps (Noto Color Emoji) are supported.
+        /*
+        if let (Some(colr), Some(cpal)) = (face.tables().colr, face.tables().cpal) {
+             let mut layers = colr.get(glyph_id);
+             // ... implementation commented out ...
+        }
+        */
+
+        
+        // Rasterize using fontdue by index (fallback for non-bitmap glyphs)
         let (metrics, pixels) = font.fontdue_font()
             .rasterize_indexed(glyph_index, font_size);
         
@@ -133,6 +240,7 @@ impl GlyphCache {
             bearing_x: metrics.xmin as f32,
             bearing_y: metrics.ymin as f32,
             advance: metrics.advance_width,
+            format: GlyphFormat::Alpha,
         };
         
         // Evict oldest entry if cache is full
@@ -188,6 +296,7 @@ mod tests {
             bearing_x: 0.0,
             bearing_y: 0.0,
             advance: 10.0,
+            format: GlyphFormat::Alpha,
         };
         
         let color = Color::rgb(255, 0, 0);
