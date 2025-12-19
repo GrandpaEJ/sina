@@ -31,28 +31,13 @@ sina = "0.1.0"
 use sina::{Color, Paint, Point, Rect, Surface, CpuSurface};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create a surface
     let mut surface = CpuSurface::new(800, 600);
-
-    // Clear background
     surface.canvas().clear(Color::WHITE);
 
-    // Draw a red rectangle
+    // Draw shapes
     let paint = Paint::with_color(Color::RED);
-    surface.canvas().draw_rect(
-        Rect::new(100.0, 100.0, 200.0, 150.0),
-        &paint,
-    );
+    surface.canvas().draw_rect(Rect::new(100.0, 100.0, 200.0, 150.0), &paint);
 
-    // Draw a blue circle
-    let paint = Paint::with_color(Color::BLUE);
-    surface.canvas().draw_circle(
-        Point::new(450.0, 200.0),
-        75.0,
-        &paint,
-    );
-
-    // Save to PNG
     surface.save_png("output.png")?;
     Ok(())
 }
@@ -65,12 +50,8 @@ use sina::{Color, Paint, Point, Surface, CpuSurface, Font};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut surface = CpuSurface::new(800, 400);
-    surface.canvas().clear(Color::WHITE);
-
-    // Load a font
     let font = Font::from_file("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")?;
 
-    // Draw text
     let paint = Paint::with_color(Color::rgb(40, 40, 40));
     surface.canvas().draw_text(
         "Hello, Sina! مرحبا שלום",
@@ -87,105 +68,48 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## 📦 Project Structure
 
-**Single unified crate** with modular architecture:
-
 - **sina**: All-in-one rendering engine
   - Core types (geometry, color, paint, path, surface)
-  - CPU backend (software rasterizer with raqote)
-  - Text rendering (TrueType/OpenType with fontdue + rustybuzz)
-  - GPU backend (WebGPU with wgpu - planned)
-  - Effects and filters (planned)
+  - CPU backend (raqote software rasterizer)
+  - Text rendering (fontdue + rustybuzz)
+  - GPU backend (wgpu - planned)
 
-## 🎯 Features
-
-### Core Graphics
-
-- [x] Geometry primitives (Point, Rect, Size)
-- [x] Color management with RGBA
-- [x] Path building with Bezier curves
-- [x] Paint styles (fill, stroke, blend modes)
-- [x] Backend abstraction (Surface/Canvas traits)
-
-### Rendering
-
-- [x] CPU rasterizer with anti-aliasing
-- [x] Shapes: rectangles, circles, lines
-- [x] Vector path rendering
-- [x] Image export (PNG)
-- [ ] GPU acceleration with WebGPU
-- [ ] Gradients
-- [ ] Blur and filters
-
-### Text
-
-- [x] TrueType (.ttf) font loading
-- [x] OpenType (.otf) font support
-- [x] Glyph rasterization with caching
-- [x] Complex script shaping (Arabic, Hebrew, Devanagari, CJK)
-- [x] Unicode support
-- [x] Text layout with alignment
-- [ ] Color emoji (COLR/CPAL)
-- [ ] Font fallback chains
-
-## 🎨 Examples
+## � Examples
 
 ```bash
-# Draw basic shapes
 cargo run --example basic_shapes
-
-# Text rendering (requires font file)
-cargo run --example text_rendering
-```
-
-## 🧪 Building
-
-```bash
-cargo build --release
-```
-
-## 🧑‍💻 Running Tests
-
-```bash
-cargo test --workspace
+cargo run --example text_rendering  # requires font file
 ```
 
 ## 📚 Documentation
 
-- [API Documentation](https://docs.rs/sina)
-- [GitHub Repository](https://github.com/GrandpaEJ/sina)
+- **[Features](FEATURES.md)** - Comprehensive feature list and status
+- **[Roadmap](TODO.md)** - Development roadmap and planned features
+- [API Docs](https://docs.rs/sina) - Full API documentation
+- [GitHub](https://github.com/GrandpaEJ/sina) - Source code
 
-## 🛠️ Pure Rust Dependencies
+## 🛠️ Pure Rust Stack
 
-| Crate          | Purpose                      |
-| -------------- | ---------------------------- |
-| **lyon**       | Vector path tessellation     |
-| **raqote**     | CPU 2D rasterization         |
-| **wgpu**       | GPU acceleration (WebGPU)    |
-| **ttf-parser** | Font metadata parsing        |
-| **fontdue**    | Glyph rasterization          |
-| **rustybuzz**  | Text shaping (HarfBuzz port) |
-| **glam**       | Vector/matrix mathematics    |
-| **image**      | PNG encoding                 |
+| Crate          | Purpose                  |
+| -------------- | ------------------------ |
+| **lyon**       | Vector path tessellation |
+| **raqote**     | CPU 2D rasterization     |
+| **wgpu**       | GPU acceleration         |
+| **ttf-parser** | Font metadata            |
+| **fontdue**    | Glyph rasterization      |
+| **rustybuzz**  | Text shaping             |
+| **glam**       | Mathematics              |
+| **image**      | PNG encoding             |
 
-## 🗺️ Roadmap
+## 🧪 Building & Testing
 
-### v0.2.0
+```bash
+# Build
+cargo build --release
 
-- [ ] GPU backend with wgpu
-- [ ] Linear and radial gradients
-- [ ] Color emoji support
-
-### v0.3.0
-
-- [ ] Blur and shadow effects
-- [ ] Image filters
-- [ ] Clipping and masking
-
-### Future
-
-- [ ] SVG rendering
-- [ ] Animation support
-- [ ] Multi-threaded rendering
+# Test
+cargo test --workspace
+```
 
 ## 📄 License
 
@@ -198,7 +122,7 @@ at your option.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions welcome! Please submit a Pull Request.
 
 ---
 
