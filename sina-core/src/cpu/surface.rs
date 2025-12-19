@@ -213,61 +213,74 @@ impl Canvas for CpuSurface {
                     continue;
                 }
                 
-                // Draw glyph pixels directly to avoid raqote's compositing overflow
-                let target_data = self.draw_target.get_data_mut();
-                let target_width_usize = target_width as usize;
-                
-                for gy in 0..rasterized.height {
-                    let target_y = y + (gy as i32);
-                    if target_y < 0 || target_y >= target_height {
-                        continue;
-                    }
+                // For RGBA glyphs (Emojis), use raqote's native image drawing for correct blending
+                if rasterized.format == crate::text::GlyphFormat::Rgba {
+                     let mut argb_pixels = Vec::with_capacity(rasterized.width * rasterized.height);
+                     for chunk in rasterized.pixels.chunks(4) {
+                         let r = chunk[0];
+                         let g = chunk[1];
+                         let b = chunk[2];
+                         let a = chunk[3];
+                         
+                         // Modulate alpha by paint opacity
+                         let final_a = ((a as u16 * color.a as u16) / 255) as u8;
+                         
+                         // Premultiply alpha (standard for ARGB32)
+                         let r = ((r as u16 * final_a as u16) / 255) as u8;
+                         let g = ((g as u16 * final_a as u16) / 255) as u8;
+                         let b = ((b as u16 * final_a as u16) / 255) as u8;
+                         
+                         // Pack into 0xAARRGGBB u32
+                         let pixel = ((final_a as u32) << 24) | 
+                                     ((r as u32) << 16) | 
+                                     ((g as u32) << 8) | 
+                                     (b as u32);
+                         argb_pixels.push(pixel);
+                     }
+                     
+                     let image = raqote::Image {
+                         width: rasterized.width as i32,
+                         height: rasterized.height as i32,
+                         data: &argb_pixels,
+                     };
+                     
+                     self.draw_target.draw_image_at(x as f32, y as f32, &image, &DrawOptions::default());
+                     continue;
+                } else if rasterized.format == crate::text::GlyphFormat::Alpha {
+                    // Convert alpha mask to ARGB image using the paint color
+                    let mut argb_pixels = Vec::with_capacity(rasterized.width * rasterized.height);
                     
-                    for gx in 0..rasterized.width {
-                        let target_x = x + (gx as i32);
-                        if target_x < 0 || target_x >= target_width {
-                            continue;
-                        }
+                    let paint_r = color.r as u16;
+                    let paint_g = color.g as u16;
+                    let paint_b = color.b as u16;
+                    let paint_a = color.a as u16;
+
+                    for &coverage in &rasterized.pixels {
+                        // coverage is 0..255
+                        // final_alpha = (coverage * paint_alpha) / 255
+                        let final_a = (coverage as u16 * paint_a) / 255;
                         
-                        // Get glyph alpha
-                        let glyph_alpha = rasterized.pixels[gy * rasterized.width + gx];
-                        if glyph_alpha == 0 {
-                            continue;
-                        }
+                        // Premultiply color
+                        let r = (paint_r * final_a) / 255;
+                        let g = (paint_g * final_a) / 255;
+                        let b = (paint_b * final_a) / 255;
                         
-                        // Calculate target pixel index
-                        let target_idx = (target_y as usize) * target_width_usize + (target_x as usize);
-                        
-                        // Get existing pixel (ARGB format in raqote)
-                        let existing = target_data[target_idx];
-                        let dst_a = ((existing >> 24) & 0xFF) as u8;
-                        let dst_r = ((existing >> 16) & 0xFF) as u8;
-                        let dst_g = ((existing >> 8) & 0xFF) as u8;
-                        let dst_b = (existing & 0xFF) as u8;
-                        
-                        // Calculate source alpha from glyph and paint
-                        let src_a = ((glyph_alpha as u16 * color.a as u16) / 255) as u8;
-                        
-                        if src_a == 0 {
-                            continue;
-                        }
-                        
-                        // Blend using standard alpha compositing
-                        // dst' = src * alpha + dst * (1 - alpha)
-                        let inv_alpha = 255 - src_a;
-                        
-                        let out_r = ((color.r as u16 * src_a as u16 + dst_r as u16 * inv_alpha as u16) / 255) as u8;
-                        let out_g = ((color.g as u16 * src_a as u16 + dst_g as u16 * inv_alpha as u16) / 255) as u8;
-                        let out_b = ((color.b as u16 * src_a as u16 + dst_b as u16 * inv_alpha as u16) / 255) as u8;
-                        let out_a = dst_a.saturating_add(src_a) - ((dst_a as u16 * src_a as u16) / 255) as u8;
-                        
-                        // Write back in ARGB format
-                        target_data[target_idx] = 
-                            ((out_a as u32) << 24) | 
-                            ((out_r as u32) << 16) | 
-                            ((out_g as u32) << 8) | 
-                            (out_b as u32);
+                        // Pack
+                        let pixel = ((final_a as u32) << 24) | 
+                                    ((r as u32) << 16) | 
+                                    ((g as u32) << 8) | 
+                                    (b as u32);
+                        argb_pixels.push(pixel);
                     }
+
+                    let image = raqote::Image {
+                        width: rasterized.width as i32,
+                        height: rasterized.height as i32,
+                        data: &argb_pixels,
+                    };
+                    
+                    self.draw_target.draw_image_at(x as f32, y as f32, &image, &DrawOptions::default());
+                    continue;
                 }
             }
         }
