@@ -6,74 +6,108 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Find an emoji font
     let font_path = find_emoji_font();
     
-    let font = if let Some(path) = font_path {
-        println!("Loading emoji font: {}", path);
-        Font::from_file(path)?
-    } else {
-        println!("⚠️ No dedicated emoji font found. Using default.");
-        Font::from_file("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")?
-    };
-
     // Create surface
     let mut surface = CpuSurface::new(1400, 600);
     surface.canvas().clear(Color::rgb(255, 255, 255));
     
-    let mut paint = Paint::with_color(Color::BLACK);
+    // 1. Load Text Font (DejaVu Sans or FreeSans)
+    let text_font_name = "DejaVuSans.ttf";
+    let text_font_path = find_font(text_font_name).or_else(|| find_font("FreeSans.ttf"));
     
-    // Draw some text with emojis
-    surface.canvas().draw_text(
-        "Hello World! 😀 🌍 🚀",
-        Point::new(50.0, 300.0),
-        &font,
-        60.0,
-        &paint,
-    );
+    // 2. Load Emoji Font
+    let emoji_font_path = find_emoji_font();
 
-    // Ensure output directory exists
-    std::fs::create_dir_all("examples/output/text")?;
-    surface.save_png("examples/output/text/emoji_test.png")?;
-    println!("✅ Saved to examples/output/text/emoji_test.png");
-    
+    if let (Some(text_path), Some(emoji_path)) = (text_font_path, emoji_font_path) {
+        println!("Loaded Text Font: {}", text_path);
+        println!("Loaded Emoji Font: {}", emoji_path);
+
+        let text_font = Font::from_file(&text_path).expect("Failed to load text font");
+        let emoji_font = Font::from_file(&emoji_path).expect("Failed to load emoji font");
+
+        // 3. Draw Standard Text
+        let mut paint = Paint::with_color(Color::rgb(20, 20, 20)); // Dark Gray
+        surface.canvas().draw_text(
+            "Hello World! Text + Emoji:",
+            Point::new(50.0, 200.0),
+            &text_font,
+            60.0,
+            &paint,
+        );
+
+        // 4. Draw Emojis (using Emoji Font)
+        // Positioned after the text (approx width)
+        let emoji_text = "😀 🌍 🚀";
+        surface.canvas().draw_text(
+            emoji_text,
+            Point::new(850.0, 200.0), // Hardcoded relative position for simplicity
+            &emoji_font,
+            60.0,
+            &paint, // Color is ignored for RGBA bitmaps, but logic uses alpha
+        );
+        
+        // Ensure output directory exists
+        std::fs::create_dir_all("examples/output/text")?;
+        surface.save_png("examples/output/text/emoji_test.png")?;
+        println!("✅ Saved to examples/output/text/emoji_test.png");
+    } else {
+        println!("❌ Could not find required fonts.");
+        println!("Text font found: {:?}", find_font("DejaVuSans.ttf").is_some());
+        println!("Emoji font found: {:?}", find_emoji_font().is_some());
+    }
+
     Ok(())
 }
 
-fn find_emoji_font() -> Option<String> {
-    // List of common emoji fonts and their typical paths across OSs
-    let candidates = [
-        // Linux / Android
-        "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf",
-        "/usr/share/fonts/opentype/noto/NotoColorEmoji.ttf",
-        "/usr/share/fonts/google-noto-emoji/NotoColorEmoji.ttf",
-        // macOS
-        "/System/Library/Fonts/Apple Color Emoji.ttc",
-        "/System/Library/Fonts/sbix/Apple Color Emoji.ttc",
-        // Windows (typical mount or WSL path)
-        "/mnt/c/Windows/Fonts/seguiemj.ttf",
-        "C:\\Windows\\Fonts\\seguiemj.ttf",
-        // Fallbacks
-        "/usr/share/fonts/truetype/android/AndroidEmoji.ttf",
+fn find_font(name: &str) -> Option<String> {
+    // Try common locations
+    let paths = [
+        format!("/usr/share/fonts/truetype/dejavu/{}", name),
+        format!("/usr/share/fonts/truetype/freefont/{}", name),
+        format!("/System/Library/Fonts/{}", name),
     ];
-
-    for path_str in candidates {
-        let path = std::path::Path::new(path_str);
-        if path.exists() {
-            return Some(path.to_string_lossy().to_string());
+    
+    for p in paths {
+        if std::path::Path::new(&p).exists() {
+            return Some(p);
         }
     }
     
-    // Generic search for "emoji" in standard directories using `find`
-    // This catches variations like "TwitterColorEmoji" or custom installed ones
+    // Fallback to `find`
     if cfg!(target_os = "linux") {
         let output = std::process::Command::new("find")
-            .args(["/usr/share/fonts", "/home/grandpa/.local/share/fonts", "-name", "*Emoji*.ttf"])
+            .args(["/usr/share/fonts", "-name", name])
             .output()
             .ok()?;
-            
         let stdout = String::from_utf8_lossy(&output.stdout);
-        if let Some(line) = stdout.lines().next() {
-            return Some(line.to_string());
+        stdout.lines().next().map(|s| s.to_string())
+    } else {
+        None
+    }
+}
+
+fn find_emoji_font() -> Option<String> {
+    if cfg!(target_os = "macos") {
+         if std::path::Path::new("/System/Library/Fonts/Apple Color Emoji.ttc").exists() {
+             return Some("/System/Library/Fonts/Apple Color Emoji.ttc".to_string());
+         }
+    }
+    
+    // Linux/Other
+    if let Some(path) = find_font("NotoColorEmoji.ttf") {
+        return Some(path);
+    }
+    
+    // Fallbacks
+    let candidates = [
+        "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf",
+        "/usr/share/fonts/google-noto-emoji/NotoColorEmoji.ttf",
+        "/usr/share/fonts/truetype/android/AndroidEmoji.ttf",
+    ];
+    
+    for p in candidates {
+        if std::path::Path::new(p).exists() {
+            return Some(p.to_string());
         }
     }
-
     None
 }
