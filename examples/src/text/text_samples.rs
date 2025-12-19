@@ -151,8 +151,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     
     // Save
-    surface.save_png("examples/output/text/showcase.png")?;
-    println!("\nSaved to examples/output/text/showcase.png");
+    // Save
+    let path = "examples/output/text/showcase.png";
+    std::fs::create_dir_all("examples/output/text")?;
+    surface.save_png(path)?;
+    println!("\nSaved to {}", path);
     
     Ok(())
 }

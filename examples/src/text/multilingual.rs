@@ -104,8 +104,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     
     // Save output
-    surface.save_png("examples/output/text/multilingual.png")?;
-    println!("\n✅ Saved to examples/output/text/multilingual.png");
+    // Save output
+    let path = "examples/output/text/multilingual.png";
+    std::fs::create_dir_all("examples/output/text")?;
+    surface.save_png(path)?;
+    println!("\n✅ Saved to {}", path);
     
     Ok(())
 }

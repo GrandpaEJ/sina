@@ -60,8 +60,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &yellow_paint,
     );
     
-    surface.save_png("examples/output/text/debug_text.png")?;
-    println!("\n✅ Saved debug output");
+    let path = "examples/output/text/debug_text.png";
+    std::fs::create_dir_all("examples/output/text")?;
+    surface.save_png(path)?;
+    println!("\n✅ Saved debug output to {}", path);
     
     Ok(())
 }

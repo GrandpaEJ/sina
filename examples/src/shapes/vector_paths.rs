@@ -109,8 +109,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     surface.canvas().draw_path(&heart, &paint);
     
     // Save output
-    surface.save_png("examples/output/vector_paths/vector_paths.png")?;
-    println!("✅ Saved to examples/output/vector_paths/vector_paths.png");
+    let path = "examples/output/shapes/vector_paths.png";
+    std::fs::create_dir_all("examples/output/shapes")?;
+    surface.save_png(path)?;
+    println!("✅ Saved to {}", path);
     
     Ok(())
 }

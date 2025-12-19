@@ -54,8 +54,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let paint = Paint::with_color(Color::rgb(255, 100, 255));
     surface.canvas().draw_path(&diamond.build(), &paint);
     
-    surface.save_png("examples/output/shapes/polygons.png")?;
-    println!("\n✅ Saved to examples/output/shapes/polygons.png");
+    let path = "examples/output/shapes/polygons.png";
+    std::fs::create_dir_all("examples/output/shapes")?;
+    surface.save_png(path)?;
+    println!("\n✅ Saved to {}", path);
     
     Ok(())
 }

@@ -83,7 +83,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Benchmark 5: PNG export
     {
         let start = Instant::now();
-        surface.save_png("examples/output/benchmark/benchmark_output.png")?;
+        let path = "examples/output/misc/benchmark/benchmark_output.png";
+        std::fs::create_dir_all("examples/output/misc/benchmark")?;
+        surface.save_png(path)?;
         let duration = start.elapsed();
         println!("✓ PNG export (1920x1080): {:?}", duration);
     }

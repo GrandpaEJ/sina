@@ -42,8 +42,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     // Save to PNG
-    surface.save_png("examples/output/basic_shapes/basic_shapes.png")?;
+    let path = "examples/output/shapes/basic_shapes.png";
+    std::fs::create_dir_all("examples/output/shapes")?;
+    surface.save_png(path)?;
 
-    println!("✅ Saved to examples/output/basic_shapes/basic_shapes.png");
+    println!("✅ Saved to {}", path);
     Ok(())
 }
