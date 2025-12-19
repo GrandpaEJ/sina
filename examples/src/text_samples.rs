@@ -1,9 +1,9 @@
 //! Comprehensive text samples showcasing font rendering capabilities
 
-use sina::{Color, Paint, Point, Rect, Surface, CpuSurface, Font};
+use sina::{Color, Paint, Point, Surface, CpuSurface, Font};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("📝 Sina Text Rendering Showcase\n");
+    println!("Text Rendering Showcase\n");
     
     // Find system font
     let font_paths = vec![
@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Subtitle  
     paint.set_color(Color::rgb(80, 90, 120));
     surface.canvas().draw_text(
-        "Pure Rust • TrueType/OpenType • Complex Scripts",
+        "Pure Rust - TrueType/OpenType - Complex Scripts",
         Point::new(50.0, 140.0),
         &font,
         22.0,
@@ -58,7 +58,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for (i, size) in sizes.iter().enumerate() {
         paint.set_color(Color::rgb(60, 70, 100));
         surface.canvas().draw_text(
-            &format!("{}px - The quick brown fox jumps over the lazy dog", size as i32),
+            &format!("{}px - The quick brown fox jumps over the lazy dog", *size as i32),
             Point::new(70.0, 240.0 + (i as f32 * 45.0)),
             &font,
             *size,
@@ -109,7 +109,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     paint.set_color(Color::rgb(60, 70, 100));
     surface.canvas().draw_text(
-        "Symbols: © ® ™ § ¶ † ‡ • ° ± × ÷",
+        "Numbers: 0123456789",
         Point::new(670.0, 250.0),
         &font,
         20.0,
@@ -117,15 +117,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     
     surface.canvas().draw_text(
-        "Accents: À Á Â Ã Ä Å È É Ê Ë Ñ Ö Ü",
+        "Punctuation: !@#$%^&*()_+-=[]{}|;:,.<>?",
         Point::new(670.0, 290.0),
         &font,
-        20.0,
+        18.0,
         &paint,
     );
     
     surface.canvas().draw_text(
-        "Quotes: \"Hello\" 'World' „German" «French»",
+        "Quotes: \"Hello\" 'World'",
         Point::new(670.0, 330.0),
         &font,
         20.0,
@@ -133,16 +133,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     
     surface.canvas().draw_text(
-        "Math: ∑ ∏ √ ∞ ≈ ≠ ≤ ≥ ∫ ∂",
+        "Accented: Cafe Resume Naive",
         Point::new(670.0, 370.0),
-        &font,
-        20.0,
-        &paint,
-    );
-    
-    surface.canvas().draw_text(
-        "Arrows: ← → ↑ ↓ ↔ ⇐ ⇒ ⇔",
-        Point::new(670.0, 410.0),
         &font,
         20.0,
         &paint,
@@ -151,7 +143,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Footer
     paint.set_color(Color::rgb(100, 110, 140));
     surface.canvas().draw_text(
-        "Powered by: ttf-parser • fontdue • rustybuzz",
+        "Powered by: ttf-parser + fontdue + rustybuzz",
         Point::new(50.0, 850.0),
         &font,
         16.0,
@@ -160,7 +152,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Save
     surface.save_png("examples/output/text_samples/showcase.png")?;
-    println!("\n✅ Saved to examples/output/text_samples/showcase.png");
+    println!("\nSaved to examples/output/text_samples/showcase.png");
     
     Ok(())
 }
