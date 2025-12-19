@@ -39,5 +39,9 @@ path = "src/multi_font.rs"
 name = "multilingual"
 path = "src/multilingual.rs"
 
+[[bin]]
+name = "debug_text"
+path = "src/debug_text.rs"
+
 [dependencies]
 sina = { path = "../sina-core" }
