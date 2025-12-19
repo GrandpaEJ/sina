@@ -106,8 +106,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     
-    surface.save_png("complex_shapes.png")?;
-    println!("✅ Saved to complex_shapes.png");
+    surface.save_png("examples/output/complex_shapes/complex_shapes.png")?;
+    println!("✅ Saved to examples/output/complex_shapes/complex_shapes.png");
     
     Ok(())
 }

@@ -83,7 +83,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Benchmark 5: PNG export
     {
         let start = Instant::now();
-        surface.save_png("benchmark_output.png")?;
+        surface.save_png("examples/output/benchmark/benchmark_output.png")?;
         let duration = start.elapsed();
         println!("✓ PNG export (1920x1080): {:?}", duration);
     }
