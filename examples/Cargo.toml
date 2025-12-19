@@ -7,5 +7,9 @@ edition = "2021"
 name = "basic_shapes"
 path = "src/basic_shapes.rs"
 
+[[bin]]
+name = "text_rendering"
+path = "src/text_rendering.rs"
+
 [dependencies]
 sina = { path = "../sina-core" }

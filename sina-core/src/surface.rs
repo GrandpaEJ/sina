@@ -39,4 +39,7 @@ pub trait Canvas {
 
     /// Draw a line
     fn draw_line(&mut self, from: Point, to: Point, paint: &Paint);
+
+    /// Draw text at a position
+    fn draw_text(&mut self, text: &str, position: Point, font: &crate::text::Font, font_size: f32, paint: &Paint);
 }

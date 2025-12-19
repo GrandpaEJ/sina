@@ -171,4 +171,72 @@ impl Canvas for CpuSurface {
         let draw_options = DrawOptions::default();
         self.draw_target.stroke(&raqote_path, &source, &stroke_style, &draw_options);
     }
+
+    fn draw_text(&mut self, text: &str, position: Point, font: &crate::text::Font, font_size: f32, paint: &Paint) {
+        use crate::text::{TextLayout, TextAlign, GlyphCache};
+        
+        // Create layout engine
+        let layout = TextLayout::new(font.clone(), font_size);
+        
+        // Layout the text
+        let positioned_glyphs = layout.layout(text, position, TextAlign::Left);
+        
+        // Create glyph cache
+        let mut glyph_cache = GlyphCache::default();
+        
+        // Render each glyph
+        for (glyph_pos, shaped_glyph) in positioned_glyphs {
+            // Rasterize glyph
+            if let Some(rasterized) = glyph_cache.get_or_rasterize(
+                font,
+                shaped_glyph.character,
+                font_size
+            ) {
+                if rasterized.width == 0 || rasterized.height == 0 {
+                    continue;
+                }
+                
+                // Create a path for the glyph by drawing it as a filled rectangle
+                // This is a simplified approach - for better quality, we could rasterize the actual glyph outlines
+                
+                // Convert to RGBA and composite manually
+                let rgba_pixels = rasterized.to_rgba(paint.color);
+                
+                // Create an image from the RGBA pixels
+                let mut image_data = vec![0u32; rasterized.width * rasterized.height];
+                for y in 0..rasterized.height {
+                    for x in 0..rasterized.width {
+                        let idx = (y * rasterized.width + x) * 4;
+                        let r = rgba_pixels[idx];
+                        let g = rgba_pixels[idx + 1];
+                        let b = rgba_pixels[idx + 2];
+                        let a = rgba_pixels[idx + 3];
+                        
+                        // Pack into ARGB format (raqote uses ARGB)
+                        image_data[y * rasterized.width + x] = 
+                            ((a as u32) << 24) | ((r as u32) << 16) | ((g as u32) << 8) | (b as u32);
+                    }
+                }
+                
+                // Create image
+                let image = raqote::Image {
+                    width: rasterized.width as i32,
+                    height: rasterized.height as i32,
+                    data: &image_data,
+                };
+                
+                // Calculate position with bearings
+                let x = (glyph_pos.x + rasterized.bearing_x).round();
+                let y = (glyph_pos.y - rasterized.bearing_y - rasterized.height as f32).round();
+                
+                // Draw the glyph image onto main surface
+                self.draw_target.draw_image_at(
+                    x,
+                    y,
+                    &image,
+                    &DrawOptions::default()
+                );
+            }
+        }
+    }
 }
