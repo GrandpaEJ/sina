@@ -15,5 +15,17 @@ path = "src/text_rendering.rs"
 name = "font_formats"
 path = "src/font_formats.rs"
 
+[[bin]]
+name = "vector_paths"
+path = "src/vector_paths.rs"
+
+[[bin]]
+name = "complex_shapes"
+path = "src/complex_shapes.rs"
+
+[[bin]]
+name = "benchmark"
+path = "src/benchmark.rs"
+
 [dependencies]
 sina = { path = "../sina-core" }
