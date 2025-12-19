@@ -27,5 +27,17 @@ path = "src/complex_shapes.rs"
 name = "benchmark"
 path = "src/benchmark.rs"
 
+[[bin]]
+name = "text_samples"
+path = "src/text_samples.rs"
+
+[[bin]]
+name = "multi_font"
+path = "src/multi_font.rs"
+
+[[bin]]
+name = "multilingual"
+path = "src/multilingual.rs"
+
 [dependencies]
 sina = { path = "../sina-core" }
