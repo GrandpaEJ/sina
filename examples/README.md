@@ -128,3 +128,7 @@ flowchart TD
     N --> P[Final Canvas]
     O --> P
 ```
+
+### Output Example
+
+![Emoji Rendering](output/text/emoji_test.png)
