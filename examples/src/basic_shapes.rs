@@ -42,8 +42,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     // Save to PNG
-    surface.save_png("basic_shapes.png")?;
+    surface.save_png("examples/output/basic_shapes/basic_shapes.png")?;
 
-    println!("✅ Saved to basic_shapes.png");
+    println!("✅ Saved to examples/output/basic_shapes/basic_shapes.png");
     Ok(())
 }
