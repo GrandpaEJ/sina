@@ -60,7 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &yellow_paint,
     );
     
-    surface.save_png("examples/output/text_samples/debug_text.png")?;
+    surface.save_png("examples/output/text/debug_text.png")?;
     println!("\n✅ Saved debug output");
     
     Ok(())
