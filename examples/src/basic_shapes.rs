@@ -1,6 +1,6 @@
 //! Basic shapes example for Sina rendering engine
 
-use sina_core::{Color, Paint, Point, Rect, Surface, CpuSurface};
+use sina::{Color, Paint, Point, Rect, Surface, CpuSurface};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🎨 Sina Basic Shapes Example");
