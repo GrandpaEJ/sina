@@ -118,5 +118,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[0.1.0]** - First public release with core graphics and text rendering
 - **[0.0.0]** - Project initialization
 
-[Unreleased]: https://github.com/GrandpaEJ/sina/compare/v0.1.0...HEAD
+[Released]:
 [0.1.0]: https://github.com/GrandpaEJ/sina/releases/tag/v0.1.0
