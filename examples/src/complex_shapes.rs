@@ -51,20 +51,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
     
-    // Example 4: Simple pattern
-    println!("Drawing circular pattern...");
-    for i in 0..20 {
-        let x = 200.0 + (i as f32) * 15.0;
-        let gray = 50 + (i * 10) as u8;
-        let paint = Paint::with_color(Color::rgb(gray, gray, gray + 50));
-        surface.canvas().draw_circle(
-            Point::new(x, 450.0),
-            8.0,
-            &paint,
-        );
-    }
-    
-    // Example 5: Checkerboard pattern
+    // Example 4: Checkerboard pattern
     println!("Drawing checkerboard...");
     for row in 0..4 {
         for col in 0..4 {
