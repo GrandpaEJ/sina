@@ -63,6 +63,11 @@ path = "src/misc/font_formats.rs"
 name = "test_metrics"
 path = "src/misc/test_metrics.rs"
 
+[[bin]]
+name = "emoji"
+path = "src/text/emoji.rs"
+
 [dependencies]
+
 sina = { path = "../sina-core" }
 rustybuzz = { workspace = true }

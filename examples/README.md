@@ -96,4 +96,35 @@ cargo run --bin benchmark
 
 - ✅ CPU rendering with raqote
 - ✅ PNG export
+- ✅ PNG export
 - ✅ Performance benchmarking
+
+### Emoji Support
+
+Sina currently supports **CBDT/CBLC** (Google/Android style) bitmap color emojis (e.g., Noto Color Emoji) and has stubs for **COLR/CPAL** (Microsoft style) vector emojis.
+
+```mermaid
+flowchart TD
+    A[Start: Character & Font] --> B[Load Font (ttf-parser)]
+    B --> C[Map Unicode to Glyph Index]
+    C --> D{Has Embedded Bitmap?}
+
+    D -- Yes (CBDT/SBIX) --> E[Extract Bitmap Image]
+    E --> F[Decode PNG/JPG (image crate)]
+    F --> G[Resize to Target Font Size]
+    G --> H[Store as RGBA Glyph]
+
+    D -- No (Vector) --> I[Extract Outline (fontdue)]
+    I --> J[Rasterize to Alpha Mask]
+    J --> K[Store as Alpha Glyph]
+
+    H --> L[Draw Text Loop]
+    K --> L
+
+    L --> M{Glyph Format?}
+    M -- RGBA --> N[Direct Pixel Copy]
+    M -- Alpha --> O[Apply Paint Color & Blend]
+
+    N --> P[Final Canvas]
+    O --> P
+```

@@ -1,7 +1,7 @@
 /target/
 Cargo.lock
-*.png
-*.jpg
+# *.png
+# *.jpg
 *.ttf
 *.otf
 **/.DS_Store
