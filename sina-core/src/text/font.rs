@@ -26,6 +26,9 @@ pub struct Font {
     /// Font data (shared reference for efficiency)
     data: Arc<Vec<u8>>,
     
+    /// Font collection index
+    index: u32,
+    
     /// Parsed font face
     face: ttf_parser::Face<'static>,
     
@@ -59,9 +62,14 @@ impl Font {
                 .map_err(|e| FontError::ParseError(format!("{:?}", e)))?
         };
         
+        let settings = fontdue::FontSettings {
+            collection_index: index,
+            ..fontdue::FontSettings::default()
+        };
+
         let fontdue_font = fontdue::Font::from_bytes(
             data.as_ref().as_slice(),
-            fontdue::FontSettings::default()
+            settings
         ).map_err(|e| FontError::ParseError(e.to_string()))?;
         
         // SAFETY: Transmute to 'static lifetime - we guarantee Font owns the data
@@ -71,6 +79,7 @@ impl Font {
         
         Ok(Self {
             data,
+            index,
             face,
             fontdue_font,
         })
@@ -85,6 +94,11 @@ impl Font {
     /// Get number of fonts in a collection file
     pub fn collection_size(data: &[u8]) -> Option<u32> {
         ttf_parser::fonts_in_collection(data)
+    }
+
+    /// Get the font collection index
+    pub fn index(&self) -> u32 {
+        self.index
     }
     
     /// Get the font family name
@@ -147,7 +161,7 @@ impl Font {
     }
     
     /// Get ttf-parser face reference
-    pub(crate) fn face(&self) -> &ttf_parser::Face {
+    pub fn face(&self) -> &ttf_parser::Face<'_> {
         &self.face
     }
 }
@@ -155,7 +169,7 @@ impl Font {
 impl Clone for Font {
     fn clone(&self) -> Self {
         // Clone by recreating from shared data
-        Self::from_bytes((*self.data).clone())
+        Self::from_bytes_with_index((*self.data).clone(), self.index)
             .expect("Font clone should not fail")
     }
 }
