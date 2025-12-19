@@ -8,17 +8,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut surface = CpuSurface::new(800, 600);
     surface.canvas().clear(Color::rgb(245, 245, 250));
     
-    // Example 1: Grid pattern
+    // Example 1: Grid pattern (reduced to avoid overflow)
     println!("Drawing grid pattern...");
     let mut paint = Paint::with_color(Color::rgba(200, 200, 200, 128));
-    for x in (0..800).step_by(50) {
+    for x in (0..800).step_by(100) {
         surface.canvas().draw_line(
             Point::new(x as f32, 0.0),
             Point::new(x as f32, 600.0),
             &paint,
         );
     }
-    for y in (0..600).step_by(50) {
+    for y in (0..600).step_by(100) {
         surface.canvas().draw_line(
             Point::new(0.0, y as f32),
             Point::new(800.0, y as f32),
