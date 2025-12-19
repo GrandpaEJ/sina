@@ -191,10 +191,10 @@ impl Canvas for CpuSurface {
         
         // Render each glyph
         for (glyph_pos, shaped_glyph) in positioned_glyphs {
-            // Rasterize glyph
-            if let Some(rasterized) = glyph_cache.get_or_rasterize(
+            // Rasterize glyph using its index (important for ligatures/complex scripts)
+            if let Some(rasterized) = glyph_cache.get_or_rasterize_indexed(
                 font,
-                shaped_glyph.character,
+                shaped_glyph.glyph_index,
                 font_size
             ) {
                 if rasterized.width == 0 || rasterized.height == 0 {

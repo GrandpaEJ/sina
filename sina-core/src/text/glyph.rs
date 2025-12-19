@@ -105,6 +105,47 @@ impl GlyphCache {
         Some(glyph)
     }
     
+    /// Get or rasterize a glyph by its index
+    pub fn get_or_rasterize_indexed(
+        &mut self,
+        font: &super::Font,
+        glyph_index: u16,
+        font_size: f32,
+    ) -> Option<RasterizedGlyph> {
+        let key = GlyphKey {
+            glyph_index,
+            font_size_scaled: (font_size * 100.0) as u32,
+        };
+        
+        // Check cache first
+        if let Some(glyph) = self.cache.get(&key) {
+            return Some(glyph.clone());
+        }
+        
+        // Rasterize using fontdue by index
+        let (metrics, pixels) = font.fontdue_font()
+            .rasterize_indexed(glyph_index, font_size);
+        
+        let glyph = RasterizedGlyph {
+            pixels,
+            width: metrics.width,
+            height: metrics.height,
+            bearing_x: metrics.xmin as f32,
+            bearing_y: metrics.ymin as f32,
+            advance: metrics.advance_width,
+        };
+        
+        // Evict oldest entry if cache is full
+        if self.cache.len() >= self.max_size {
+            if let Some(key) = self.cache.keys().next().copied() {
+                self.cache.remove(&key);
+            }
+        }
+        
+        self.cache.insert(key, glyph.clone());
+        Some(glyph)
+    }
+    
     /// Clear the cache
     pub fn clear(&mut self) {
         self.cache.clear();
