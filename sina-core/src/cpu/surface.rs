@@ -184,6 +184,11 @@ impl Canvas for CpuSurface {
         // Create glyph cache
         let mut glyph_cache = GlyphCache::default();
         
+        // Get the paint color and target dimensions
+        let color = paint.color;
+        let target_width = self.draw_target.width();
+        let target_height = self.draw_target.height();
+        
         // Render each glyph
         for (glyph_pos, shaped_glyph) in positioned_glyphs {
             // Rasterize glyph
@@ -196,46 +201,71 @@ impl Canvas for CpuSurface {
                     continue;
                 }
                 
-                // Create a path for the glyph by drawing it as a filled rectangle
-                // This is a simplified approach - for better quality, we could rasterize the actual glyph outlines
+                // Calculate position with bearings
+                let x = (glyph_pos.x + rasterized.bearing_x).round() as i32;
+                let y = (glyph_pos.y - rasterized.bearing_y - rasterized.height as f32).round() as i32;
                 
-                // Convert to RGBA and composite manually
-                let rgba_pixels = rasterized.to_rgba(paint.color);
-                
-                // Create an image from the RGBA pixels
-                let mut image_data = vec![0u32; rasterized.width * rasterized.height];
-                for y in 0..rasterized.height {
-                    for x in 0..rasterized.width {
-                        let idx = (y * rasterized.width + x) * 4;
-                        let r = rgba_pixels[idx];
-                        let g = rgba_pixels[idx + 1];
-                        let b = rgba_pixels[idx + 2];
-                        let a = rgba_pixels[idx + 3];
-                        
-                        // Pack into ARGB format (raqote uses ARGB)
-                        image_data[y * rasterized.width + x] = 
-                            ((a as u32) << 24) | ((r as u32) << 16) | ((g as u32) << 8) | (b as u32);
-                    }
+                // Skip if completely off screen
+                if x + (rasterized.width as i32) < 0 || y + (rasterized.height as i32) < 0 {
+                    continue;
+                }
+                if x >= target_width || y >= target_height {
+                    continue;
                 }
                 
-                // Create image
-                let image = raqote::Image {
-                    width: rasterized.width as i32,
-                    height: rasterized.height as i32,
-                    data: &image_data,
-                };
+                // Draw glyph pixels directly to avoid raqote's compositing overflow
+                let target_data = self.draw_target.get_data_mut();
+                let target_width_usize = target_width as usize;
                 
-                // Calculate position with bearings
-                let x = (glyph_pos.x + rasterized.bearing_x).round();
-                let y = (glyph_pos.y - rasterized.bearing_y - rasterized.height as f32).round();
-                
-                // Draw the glyph image onto main surface
-                self.draw_target.draw_image_at(
-                    x,
-                    y,
-                    &image,
-                    &DrawOptions::default()
-                );
+                for gy in 0..rasterized.height {
+                    let target_y = y + (gy as i32);
+                    if target_y < 0 || target_y >= target_height {
+                        continue;
+                    }
+                    
+                    for gx in 0..rasterized.width {
+                        let target_x = x + (gx as i32);
+                        if target_x < 0 || target_x >= target_width {
+                            continue;
+                        }
+                        
+                        // Get glyph alpha
+                        let glyph_alpha = rasterized.pixels[gy * rasterized.width + gx];
+                        if glyph_alpha == 0 {
+                            continue;
+                        }
+                        
+                        // Calculate target pixel index
+                        let target_idx = (target_y as usize) * target_width_usize + (target_x as usize);
+                        
+                        // Get existing pixel (ARGB format in raqote)
+                        let existing = target_data[target_idx];
+                        let dst_a = ((existing >> 24) & 0xFF) as u8;
+                        let dst_r = ((existing >> 16) & 0xFF) as u8;
+                        let dst_g = ((existing >> 8) & 0xFF) as u8;
+                        let dst_b = (existing & 0xFF) as u8;
+                        
+                        // Source color with glyph alpha
+                        let src_a = ((glyph_alpha as u16 * color.a as u16) / 255) as u8;
+                        let src_r = ((color.r as u16 * src_a as u16) / 255) as u8;
+                        let src_g = ((color.g as u16 * src_a as u16) / 255) as u8;
+                        let src_b = ((color.b as u16 * src_a as u16) / 255) as u8;
+                        
+                        // Alpha blend (simplified SrcOver)
+                        let inv_src_a = 255 - src_a;
+                        let out_a = src_a.saturating_add(((dst_a as u16 * inv_src_a as u16) / 255) as u8);
+                        let out_r = src_r.saturating_add(((dst_r as u16 * inv_src_a as u16) / 255) as u8);
+                        let out_g = src_g.saturating_add(((dst_g as u16 * inv_src_a as u16) / 255) as u8);
+                        let out_b = src_b.saturating_add(((dst_b as u16 * inv_src_a as u16) / 255) as u8);
+                        
+                        // Write back in ARGB format
+                        target_data[target_idx] = 
+                            ((out_a as u32) << 24) | 
+                            ((out_r as u32) << 16) | 
+                            ((out_g as u32) << 8) | 
+                            (out_b as u32);
+                    }
+                }
             }
         }
     }
