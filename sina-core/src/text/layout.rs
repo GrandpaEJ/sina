@@ -47,12 +47,16 @@ impl TextLayout {
     pub fn shape(&self, text: &str) -> ShapedText {
         // Create rustybuzz face from font data
         let raw_face = self.font.face().raw_face();
-        let face = rustybuzz::Face::from_slice(raw_face.data, 0)
+        // Use the correct index from our Font struct (0 if not in a collection, or the specific index if it is)
+        let face = rustybuzz::Face::from_slice(raw_face.data, self.font.index())
             .expect("Failed to create rustybuzz face");
         
         // Create buffer for shaping
         let mut buffer = rustybuzz::UnicodeBuffer::new();
         buffer.push_str(text);
+        
+        // Auto-detect direction and script (crucial for Bangla, Arabic, etc.)
+        buffer.guess_segment_properties();
         
         // Shape the text
         let output = rustybuzz::shape(&face, &[], buffer);
