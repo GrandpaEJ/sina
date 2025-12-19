@@ -9,28 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.2] - 2025-12-20
 
+### Added
+
+- **Emoji Rendering**: Full support for color emojis using a hybrid rendering engine.
+  - Implemented `text::bitmap` for extracting distinct CBDT/SBIX bitmap tables.
+  - Integrated `raqote::draw_image_at` for high-fidelity RGBA rendering of emojis.
+  - Restored optimized Alpha blending for standard text to ensure correct visibility alongside emojis.
+
 ### Fixed
 
-- **Text Rendering**: Resolved a regression where standard text (Alpha masks) became invisible after emoji support integration. Restored optimized manual alpha blending path for text glyphs, ensuring 100% visibility reliable rendering.
-- **Example Reliability**: Fixed `IoError: NotFound` crashes across all examples by automatically creating output directories (`examples/output/`) before saving images.
-- **Emoji Example**: Fixed the `emoji` example to correctly render both Latin text and Emojis by using separate fonts for each script type.
-- **Compilation**: Resolved all compiler warnings (unused variables, dead code, unnecessary mutability).
-- **Code Style**: Applied `cargo fmt` to the entire codebase for consistent formatting.
+- **Example Reliability**: Fixed `IoError` crashes across all examples by automatically creating output directories.
+- **Code Style**: Applied `cargo fmt` and resolved technical debt (warnings, unused code).
+- **Text Visibility**: Fixed a regression where standard text became invisible when emoji support was enabled.
 
 ## [0.1.1] - 2025-12-20
 
 ### Added
 
-- **Emoji Support**: Initial support for color emojis.
-  - Integrated `raqote::draw_image_at` for rendering RGBA bitmaps.
-  - Added `bitmap` module for extracting embedded bitmaps (CBDT/SBIX tables).
-  - Added `emoji` module structure for future COLR/CPAL support.
-- **Font Collections**: Updated `Font` struct to fully support TrueType Collections (`.ttc`), allowing access to specific fonts within a collection (e.g., for CJK fonts).
+- **Multilingual Font Support**: Enhanced `Font` and `TextLayout` to properly handle TrueType Collections (`.ttc`).
+  - Added support for selecting specific fonts within a collection via index (crucial for CJK fonts like `NotoSansCJK`).
+  - Updated `GlyphCache` to handle indexed font faces correctly.
 
 ### Changed
 
-- **Rendering Pipeline**: Refactored `CpuSurface::draw_text` to handle different `GlyphFormat` types (Alpha vs RGBA).
-- **Examples**: Improved `multilingual` example with better font discovery logic.
+- **Font Discovery**: Improved the `multilingual` example to robustly find system fonts on Linux/macOS.
+- **API**: `Font::from_collection` now exposed for loading `.ttc` files.
 
 ## [0.1.0] - 2025-12-19
 
